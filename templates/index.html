@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Italic IR</title>
+
+    <style>
+        /* Supaya paragraf <p> terlihat ada jarak */
+        #outputText p {
+            margin: 0 0 14px 0;
+            line-height: 1.5;
+        }
+
+        #outputText {
+            white-space: normal;
+        }
+    </style>
+</head>
+<body>
+    <h1>Italic Istilah Asing (Demo)</h1>
+
+    <label for="inputText">Input Teks:</label><br>
+    <textarea id="inputText" rows="10" cols="90"></textarea><br><br>
+
+    <button id="processBtn">Proses</button>
+
+    <h2>Output:</h2>
+
+    <div id="outputText"
+         style="border:1px solid #ccc; padding:10px; min-height:100px;">
+    </div>
+
+    <script>
+        document.getElementById('processBtn').addEventListener('click', async () => {
+            const text = document.getElementById('inputText').value;
+
+            const res = await fetch('/process', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text })
+            });
+
+            const data = await res.json();
+            document.getElementById('outputText').innerHTML = data.html;
+        });
+    </script>
+</body>
+</html>
