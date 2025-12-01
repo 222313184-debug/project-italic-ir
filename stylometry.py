@@ -5,9 +5,10 @@ from nltk import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 import nltk
 
-# # Jalankan sekali saja saat pertama kali di-run
-# nltk.download('punkt')
-# nltk.download('stopwords')
+# Jalankan saat import; kalau data sudah ada, NLTK tidak akan download lagi
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)   # ini yang diminta di error
+nltk.download('stopwords', quiet=True)
 
 stop_words = set(stopwords.words("english"))
 

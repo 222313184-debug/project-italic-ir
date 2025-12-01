@@ -10,47 +10,43 @@ app = Flask(__name__)
 svm_model = joblib.load("models/svm_stylo_model.pkl")
 
 # Kalau kamu pakai scaler waktu training, load juga:
-# stylo_scaler = joblib.load("models/stylo_scaler.pkl")
-
+stylo_scaler = joblib.load("models/stylo_scaler.pkl")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    prediction = None
+    prediction_text = None
     prob_ai = None
     input_text = ""
 
     if request.method == "POST":
         input_text = request.form.get("input_text", "")
 
-        # 1. Hitung fitur stylometry
-        stylo_feat = np.array(stylometry_10(input_text)).reshape(1, -1)
+        # 1. Fitur stylometry
+        feat = np.array(stylometry_10(input_text)).reshape(1, -1)
 
-        # 2. Kalau pakai scaler:
-        stylo_feat = stylo_scaler.transform(stylo_feat)
+        # 2. Scaling
+        feat_scaled = stylo_scaler.transform(feat)
 
-        # 3. Prediksi
-        y_pred = svm_model.predict(stylo_feat)[0]
+        # 3. Probabilitas AI
+        proba = svm_model.predict_proba(feat_scaled)[0]
+        prob_ai = float(proba[1])   # kelas 1 = AI
 
-        # kalau SVM kamu di-set probability=True
-        try:
-            proba = svm_model.predict_proba(stylo_feat)[0]
-            prob_ai = float(proba[1])  # probabilitas kelas 1 (AI)
-        except Exception:
-            prob_ai = None
+        # 4. THRESHOLD
+        THRESHOLD = 0.45  # misal kita buat sedikit lebih sensitif ke AI
+        y_pred = 1 if prob_ai >= THRESHOLD else 0
 
-        # mapping label ke kalimat
+        # 5. Mapping label
         if y_pred == 1:
-            prediction = "Teks terdeteksi sebagai HASIL AI."
+            prediction_text = "Teks terdeteksi sebagai HASIL AI."
         else:
-            prediction = "Teks terdeteksi sebagai TULISAN MANUSIA."
+            prediction_text = "Teks terdeteksi sebagai TULISAN MANUSIA."
 
     return render_template(
         "index.html",
-        prediction=prediction,
+        prediction=prediction_text,
         prob_ai=prob_ai,
         input_text=input_text,
     )
-
 
 if __name__ == "__main__":
     app.run(debug=True)
