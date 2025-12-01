@@ -2,47 +2,24 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Italic IR</title>
-
-    <style>
-        /* Supaya paragraf <p> terlihat ada jarak */
-        #outputText p {
-            margin: 0 0 14px 0;
-            line-height: 1.5;
-        }
-
-        #outputText {
-            white-space: normal;
-        }
-    </style>
+    <title>AI Text Detector (Stylometry)</title>
 </head>
 <body>
-    <h1>Italic Istilah Asing (Demo)</h1>
+    <h1>AI Text Detector (Stylometry)</h1>
+    <p>Model ini dilatih pada esai bahasa Inggris. Mohon masukkan teks berbahasa Inggris.</p>
 
-    <label for="inputText">Input Teks:</label><br>
-    <textarea id="inputText" rows="10" cols="90"></textarea><br><br>
+    <form method="POST">
+        <textarea name="input_text" rows="10" cols="80">{{ input_text }}</textarea><br><br>
+        <button type="submit">Deteksi</button>
+    </form>
 
-    <button id="processBtn">Proses</button>
+    {% if prediction %}
+        <h2>Hasil:</h2>
+        <p>{{ prediction }}</p>
 
-    <h2>Output:</h2>
-
-    <div id="outputText"
-         style="border:1px solid #ccc; padding:10px; min-height:100px;">
-    </div>
-
-    <script>
-        document.getElementById('processBtn').addEventListener('click', async () => {
-            const text = document.getElementById('inputText').value;
-
-            const res = await fetch('/process', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ text })
-            });
-
-            const data = await res.json();
-            document.getElementById('outputText').innerHTML = data.html;
-        });
-    </script>
+        {% if prob_ai is not none %}
+            <p>Probabilitas AI (kelas 1): {{ "%.3f"|format(prob_ai) }}</p>
+        {% endif %}
+    {% endif %}
 </body>
 </html>
