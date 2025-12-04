@@ -2,15 +2,14 @@ from flask import Flask, render_template, request
 import numpy as np
 import joblib
 
-from stylometry import stylometry_10
+from stylometry import stylometry_31   # PENTING: pakai 31 fitur
 
 app = Flask(__name__)
 
-# === Load model (dan scaler kalau ada) ===
-svm_model = joblib.load("models/svm_stylo_model.pkl")
-
-# Kalau kamu pakai scaler waktu training, load juga:
-stylo_scaler = joblib.load("models/stylo_scaler.pkl")
+# === Load model terbaik (Random Forest) + scaler 31 fitur ===
+# SESUAIKAN nama file .pkl dengan yang kamu simpan dari Colab
+rf_model = joblib.load("models/rf_stylo31.pkl")          # contoh nama file
+stylo_scaler = joblib.load("models/stylo31_scaler.pkl")  # scaler untuk 31 fitur
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -21,21 +20,20 @@ def index():
     if request.method == "POST":
         input_text = request.form.get("input_text", "")
 
-        # 1. Fitur stylometry
-        feat = np.array(stylometry_10(input_text)).reshape(1, -1)
+        # 1. Hitung 31 fitur stylometri dari teks input
+        feat = np.array(stylometry_31(input_text)).reshape(1, -1)
 
-        # 2. Scaling
+        # 2. Scaling (harus pakai scaler yang sama dengan waktu training)
         feat_scaled = stylo_scaler.transform(feat)
 
-        # 3. Probabilitas AI
-        proba = svm_model.predict_proba(feat_scaled)[0]
-        prob_ai = float(proba[1])   # kelas 1 = AI
+        # 3. Prediksi probabilitas kelas AI (kelas 1)
+        proba = rf_model.predict_proba(feat_scaled)[0]
+        prob_ai = float(proba[1])
 
-        # 4. THRESHOLD
-        THRESHOLD = 0.45  # misal kita buat sedikit lebih sensitif ke AI
-        y_pred = 1 if prob_ai >= THRESHOLD else 0
+        # 4. Prediksi kelas (threshold default 0.5 dari model)
+        y_pred = rf_model.predict(feat_scaled)[0]
 
-        # 5. Mapping label
+        # 5. Mapping label → kalimat
         if y_pred == 1:
             prediction_text = "Teks terdeteksi sebagai HASIL AI."
         else:
